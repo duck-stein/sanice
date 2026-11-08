@@ -12,21 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 from setuptools import setup, find_packages
-import os
+
+with open("sanice/__init__.py", "r", encoding="utf-8") as fh:
+    version = re.search(r'__version__ = "([^"]+)"', fh.read()).group(1)
 
 try:
     with open("README.md", "r", encoding="utf-8") as fh:
         long_description = fh.read()
 except FileNotFoundError:
-    long_description = "Biblioteca fluente para Data Science ágil (ETL, AutoML e Plotting)."
+    long_description = "Biblioteca fluente para Data Science ágil (ETL, AutoML e gráficos)."
 
 setup(
     name="sanice",
-    version="1.1.0",
+    version=version,
     author="wSanice",
     author_email="wansanice@proton.me",
-    description="Biblioteca fluente para Data Science ágil (ETL, AutoML e Plotting).",
+    description="Biblioteca fluente para Data Science ágil (ETL, AutoML e gráficos).",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/wSanice/sanice",
@@ -37,9 +41,9 @@ setup(
         "Operating System :: OS Independent",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: Information Analysis",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     install_requires=[
         "numpy>=1.21.0",
         "pandas>=2.0.0",
@@ -56,7 +60,7 @@ setup(
     extras_require={
         "api": ["fastapi>=0.95.0", "uvicorn>=0.22.0", "pydantic>=1.10.0"],
         "db": ["pymongo", "psycopg2-binary","pymysql"],
-        "dev": ["pytest", "twine", "wheel","pytest-mock", "coverage"]
+        "dev": ["pytest", "twine", "wheel", "pytest-mock", "coverage", "httpx"]
     },
     entry_points={
         "console_scripts": [

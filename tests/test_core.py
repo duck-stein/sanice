@@ -2,7 +2,8 @@ import pytest
 import os
 import sqlite3
 import gc
-import logging 
+import logging
+import sys
 from unittest.mock import MagicMock, patch
 
 from sanice import Sanice, pd, np
@@ -118,14 +119,13 @@ def test_sql_integration():
 def test_mongo_export(dirty_df):
     app = Sanice(dirty_df, lang="en")
     
-    with patch("pymongo.MongoClient") as mock_client:
-        mock_db = MagicMock()
-        mock_col = MagicMock()
-        mock_client.return_value.__getitem__.return_value = mock_db
-        mock_db.__getitem__.return_value = mock_col
-        
+    fake_pymongo = MagicMock()
+    mock_col = fake_pymongo.MongoClient.return_value.__getitem__.return_value.__getitem__.return_value
+
+    with patch.dict(sys.modules, {"pymongo": fake_pymongo}):
         app.export_mongo("mongodb://fake", "db", "col")
-        mock_col.insert_many.assert_called_once()
+
+    mock_col.insert_many.assert_called_once()
 
 def test_automl_pipeline(ml_df):
     model_path = "test_model.pkl"

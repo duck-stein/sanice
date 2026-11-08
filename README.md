@@ -9,30 +9,39 @@
 
 
 
-![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
+![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue)
 ![Status](https://img.shields.io/badge/status-stable-brightgreen)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/sanice?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=RED&left_text=downloads)](https://pepy.tech/projects/sanice)
 
-[🇺🇸 English](#-english) | [🇧🇷 Português](#-português) | [🇨🇳 &nbsp; 🇮🇳 &nbsp;Multi-language](#-Multilanguage)
+[🇺🇸 English](#-english) | [🇧🇷 Português](#-português) | [🇨🇳 中文](#-中文) | [🇮🇳 हिन्दी](#-hindi) | [Multi-language](#-Multilanguage)
 
 </div>
 
 ---
 <details>
-<summary><b>Release Notes - v1.1.0+</b></summary>
+<summary><b>Release Notes - v1.2.0</b></summary>
 <br>
 
-## Critical Fixes
-* **Scope Integrity:** Fixed the fatal `SyntaxError: 'return' outside function` error that affected version v1.0.11.
-* **Method Restoration:** Function headers for `.predict()` and `.serve_api()` have been properly restored, ensuring correct execution by the Python interpreter.
-* [cite_start]**Shielded Pipeline:** Implemented internal protections to prevent crashes if the AI model is not loaded before prediction, keeping Method Chaining functional[cite: 208, 251].
+## Fixes
+* `.auto_ml(...)` now leaves the model ready. `.predict()` and `.serve_api()` work right after training, without saving and loading.
+* `.scale_data()` accepts `colunas` and `excluir`, remembers which columns it scaled and no longer breaks predictions on new data.
+* Predictions on a single row (the API) no longer drop the only category of a text column.
+* `.create_column()` keeps the chain after an error.
+* CSV reading detects separator and encoding, accepts `.CSV`, `.tsv` and `.txt`, and has `sep`, `encoding`, `aba` and `decimal`.
+* `.transform()` rule `DATE` now works. `UPPER` and `LOWER` keep empty values. `CPF` and `CNPJ` keep leading zeros.
+* Errors and messages follow the language and the log level you chose.
+* `.export_mongo()` reports its errors.
+* Translations reviewed in Portuguese, English, Chinese and Hindi.
+* README examples use the real method names.
 
-## New Features & Improvements
-* [cite_start]**AutoML 2.0 (The Tournament):** Stabilization of the model arena where **Linear Regression**, **Random Forest**, and **Gradient Boosting** compete for accuracy[cite: 694, 750].
-* [cite_start]**Intelligent Prediction:** The `.predict()` method now automatically manages column reindexing (dummies), ensuring compatibility between training data and new input[cite: 793, 1206].
-* [cite_start]**One-Line API:** Optimized the `.serve_api()` command for instant deployment of **FastAPI** servers with integrated interactive documentation (Swagger UI)[cite: 184, 958, 961].
-* [cite_start]**Global Localization (I18N):** Full refinement of log messages and data cleaning support for **Portuguese**, **English**, **Chinese**, and **Hindi**[cite: 358, 362].
+## New
+* Commands: `remove_duplicates`, `rename_columns`, `null_report`, `info`, `sample_rows`, `validate`, `extract_date`, `create_lags`, `detect_anomalies`, `segment`, `feature_importance`, `evaluate`, `predict_proba`, `save_report`, `undo`.
+* `.auto_ml()` options: `balance`, `cross_validation`, `metric`, and automatic task type.
+* `.transform()` rules `CEP`, `UF`, `REGIAO`, `DATE`.
+* `.serve_api(host, porta)` and probabilities in the API answer.
+* `.plot_chart("box")` and `.save_file("data.json")`.
+* Python 3.9 or newer. Tests run on 3.9 to 3.13.
 
 **How to update:**
 `pip install sanice --upgrade`
@@ -102,7 +111,7 @@ from sanice import Sanice
 # 1. Initialize Sanice and set the logging level to SILENT.
 # This ensures that all framework messages (INFO, WARN) are suppressed.
 app = Sanice.from_sql(
-    url_connection="postgresql://prod_user:***@db-server/analytics_db",
+    url_conexao="postgresql://prod_user:***@db-server/analytics_db",
     query="SELECT * FROM raw_transactions WHERE created_at >= '2025-01-01'"
 )
 app.configurar_logs("silent") # Crucial line for muting framework output
@@ -127,7 +136,7 @@ app.configurar_logs("silent") # Crucial line for muting framework output
 )
 
 # If the pipeline runs successfully in silent mode, the console output will be clean,
-# meaning the framework will not print "Starting AutoML..." or "Data exported successfully...".
+# meaning the framework will not print "Starting training..." or "Data exported successfully...".
 
 # If we needed to confirm the execution with an explicit, controlled message:
 print("INFO: Data pipeline finished and cleaned transactions were exported to MongoDB.")
@@ -135,7 +144,7 @@ print("INFO: Data pipeline finished and cleaned transactions were exported to Mo
 
 ### ⚡ Quick Start
 
-**How to turn a dirty CSV into a deployed AI model in minutes.**
+**How to turn a dirty CSV into a deployed model in minutes.**
 
 ```python
 from sanice import Sanice
@@ -143,7 +152,7 @@ from sanice import Sanice
 (Sanice("raw_data.csv")
     .fix_columns()                    # Standardize names to snake_case
     .transform("price", "money")      # Cleans money format ("$ 1,000.00" -> 1000.0)
-    .drop_nulls()                     # Removes empty rows
+    .remove_nulls()                     # Removes empty rows
     .create_column("total", "price * qty")
     .handle_outliers("total")         # Removes statistical anomalies (IQR)
     .auto_ml(                         # Trains Random Forest & saves model
@@ -166,7 +175,7 @@ Sanice's cleaning engine has been expanded to support global and production scen
 | Command | Description |
 | :--- | :--- |
 | `app.fix_columns()` | Converts column names to `snake_case`, including **automatic accent removal** (`á`, `ç`) and special characters (e.g., "Copáibaçuã" -> "copaibacua"). |
-| `app.transform(col, rule)` | Applies **international currency cleaning** and text standardization logic: `'MONEY'`, `'NUMBERS'`, `'EMAIL'`, `'UPPER'`, `'LOWER'`, etc. |
+| `app.transform(col, rule)` | Applies **international currency cleaning** and text standardization logic: `'MONEY'`, `'NUMBERS'`, `'CPF'`, `'CNPJ'`, `'CEP'`, `'EMAIL'`, `'UPPER'`, `'LOWER'`, `'DATE'`, `'UF'`, `'REGIAO'`. |
 | `app.remove_nulls(strategy, val)` | Strategy: `'drop'` or `'fill'` (default `0` if not specified). |
 | `app.clean_text([cols])` | Removes extra spaces and converts text to Title Case. |
 | `app.convert_date(col, fmt)` | Converts a string column to datetime objects. |
@@ -199,10 +208,10 @@ app_pt.transform("import_value", "MONEY")
 | Command | Description |
 | :--- | :--- |
 | `app.create_column(name, logic)` | Creates a column using a string expression or lambda. |
-| `app.filter(query)` | Filters rows using SQL-like syntax (e.g., `"age > 18"`). |
-| `app.sort(col, ascending)` | Sorts the dataset by a specific column. |
-| `app.join(other_df, keys, how)` | Merges two datasets (Left, Right, Inner, Outer). |
-| `app.group([cols], val, op)` | Groups data and calculates sum, mean, or count. |
+| `app.filter_data(query)` | Filters rows using SQL-like syntax (e.g., `"age > 18"`). |
+| `app.sort_data(col, ascendente)` | Sorts the dataset by a specific column. |
+| `app.join_data(other_df, keys, how)` | Merges two datasets (Left, Right, Inner, Outer). |
+| `app.group_by([cols], val, op)` | Groups data and calculates `soma` (sum), `media` (mean), `contagem` (count), `max` or `min`. |
 | `app.pivot_table(idx, col, val)` | Creates a Pivot Table from the data. |
 
 > **Use Cases:**
@@ -214,14 +223,10 @@ app_pt.transform("import_value", "MONEY")
 ```python
 # Total Sales Analysis by Region
 (Sanice("sales.csv")
-    .filter("status == 'Completed'")
+    .filter_data("status == 'Completed'")
     .create_column("revenue", "price * quantity")
-    .group(
-        cols=["region", "category"], 
-        value_col="revenue", 
-        operation="sum"
-    )
-    .sort("revenue", ascending=False)
+    .group_by(["region", "category"], "revenue", "soma")
+    .sort_data("revenue", ascendente=False)
 )
 ```
 ### 3. Database Integration (SQL & NoSQL) v1.0.9+
@@ -245,7 +250,7 @@ app = Sanice.from_sql(
 
 # 2. Clean & Export to NoSQL (MongoDB)
 (app
-    .drop_nulls()
+    .remove_nulls()
     .export_mongo(
         uri="mongodb://localhost:27017",
         database="analytics_db",
@@ -257,10 +262,10 @@ app = Sanice.from_sql(
 ### 4. Analytics & Visualization
 | Command | Description |
 | :--- | :--- |
-| `app.describe()` | Displays mean, std, min, max, and percentiles. |
+| `app.stats_summary()` | Displays mean, std, min, max, and percentiles. |
 | `app.correlation_matrix()` | Plots a heatmap of correlations between numeric vars. |
 | `app.handle_outliers([cols])` | Removes outliers automatically using the IQR method. |
-| `app.plot(type, x, y, hue)` | Plots charts: `'bar'`, `'line'`, `'scatter'`, `'hist'`, `'box'`. |
+| `app.plot_chart(type, x, y, hue)` | Plots charts: `'bar'`, `'line'`, `'scatter'`, `'hist'`, `'box'`. |
 
 > **Use Cases:**
 > * Exploratory Data Analysis (EDA) to understand data profiles before modeling.
@@ -271,18 +276,18 @@ app = Sanice.from_sql(
 ```python
 # Rapid Dataset Diagnosis
 (Sanice("biological_data.csv")
-    .describe()
+    .stats_summary()
     .handle_outliers(["age", "glucose"]) # Remove anomalies
     .correlation_matrix()                # Shows influence factors
-    .plot("scatter", x="age", y="glucose", hue="diagnosis")
+    .plot_chart("scatter", x="age", y="glucose", hue="diagnosis")
 )
 ```
 
-### 5. AI & Machine Learning
+### 5. Machine Learning
 | Command | Description |
 | :--- | :--- |
-| `app.scale(method)` | Normalizes data using `'minmax'` or `'standard'` scaler. |
-| `app.auto_ml(target, type, path)` | **AutoML Tournament:** trains 3 models (Linear, RF, Gradient), selects the best one, and saves. |
+| `app.scale_data(method)` | Normalizes data using `'minmax'` or `'standard'` scaler. |
+| `app.auto_ml(target, type, path)` | **Model tournament:** trains 3 models (Linear, RF, Gradient), selects the best one, and saves. |
 | `app.load_ai(path)` | Loads a pre-trained `.pkl` model into memory. |
 | `app.predict(output_col)` | Generates predictions using the loaded model. |
 
@@ -295,8 +300,8 @@ app = Sanice.from_sql(
 ```python
 # Training with Tournament (Sanice compares models automatically)
 (Sanice("telecom_churn.csv")
-    .scale("minmax")
-    .auto_ml(target="churn", type="classification", save_path="my_ai.pkl")
+    .scale_data("minmax")
+    .auto_ml(target="churn", type="classification", save_path="my_model.pkl")
 )
 
 # Console Output:
@@ -305,7 +310,7 @@ app = Sanice.from_sql(
 
 # ... In another script, loading and predicting:
 (Sanice("new_customers.csv")
-    .load_ai("my_ai.pkl")
+    .load_ai("my_model.pkl")
     .predict(output_col="churn_prob")
 )
 ```
@@ -313,13 +318,13 @@ app = Sanice.from_sql(
 ### 6. Export & Deployment
 | Command | Description |
 | :--- | :--- |
-| `app.save(path)` | Exports data to `.csv`, `.xlsx`, or `.parquet`. |
+| `app.save_file(path)` | Exports data to `.csv`, `.xlsx`, `.parquet` or `.json`. |
 | `app.export_sql(url, table)` | Pushes the dataframe to a SQL database. |
-| `app.serve_api()` | Starts a FastAPI server to serve predictions. |
+| `app.serve_api(host, porta)` | Starts a FastAPI server to serve predictions (default `127.0.0.1:8000`). |
 
 > **Use Cases:**
 > * Exporting treated data (Bronze -> Silver) to BI tools like Power BI or Tableau.
-> * Instant creation of AI microservices for Mobile or Web App integration.
+> * Instant creation of model microservices for Mobile or Web App integration.
 > * Persistence of clean data into relational databases (PostgreSQL/MySQL).
 
 **Application Example:**
@@ -328,8 +333,105 @@ app = Sanice.from_sql(
 (Sanice("raw_data.csv")
     .fix_columns()
     .auto_ml("target", "regression", "model.pkl")
-    .save("clean_data.parquet")   # Data Backup
+    .save_file("clean_data.parquet")   # Data Backup
     .serve_api()                  # API Online at http://localhost:8000
+)
+```
+
+### 7. New in 1.2.0
+
+| Command | Description |
+| :--- | :--- |
+| `Sanice(path, sep, encoding, aba, decimal)` | Separator and encoding are detected when omitted, so Brazilian CSVs (`;` and `latin1`) just load. `aba` picks the Excel sheet. |
+| `app.remove_duplicates([cols])` | Removes duplicate rows. |
+| `app.rename_columns({old: new})` | Renames columns. |
+| `app.null_report()` | Percentage of nulls per column. |
+| `app.info()` | Rows, columns, memory and types. |
+| `app.sample_rows(n)` | Draws random rows (`n` or `fracao`). |
+| `app.validate(col, rule)` | Validates `CPF`, `CNPJ`, `EMAIL` or `CEP`. Creates `<col>_valido`, or drops invalid rows with `remover=True`. |
+| `app.extract_date(col)` | Creates year, month, day and weekday columns. |
+| `app.create_lags(col, atrasos, medias)` | Lags and moving averages for time series. |
+| `app.detect_anomalies([cols])` | Flags unusual records in the `anomalia` column. |
+| `app.segment([cols], grupos)` | Groups similar rows in the `segmento` column. |
+| `app.evaluate()` | Accuracy and F1, or R², RMSE and MAE, measured on held out data. |
+| `app.feature_importance(top)` | Variables that weigh most in the model. |
+| `app.predict_proba()` | One probability column per class. |
+| `app.save_report(path)` | `.html` or `.xlsx` report with steps, summary and metrics. |
+| `app.undo()` | Undoes up to the last 5 operations. |
+
+`auto_ml` options: `balance=True` for rare classes (fraud, default), `cross_validation=5`, `metric` (`accuracy`, `f1`, `r2`, `rmse`, `mae`). The task type is detected from the target; force it with `type="classification"` or `type="regression"`.
+
+Parameter names such as `atrasos`, `medias`, `grupos` and `contaminacao` are the same in every language.
+
+**Cleaning, validation and reports:**
+```python
+from sanice import Sanice
+
+app = Sanice("sales.csv", lang="en")
+
+(app
+    .remove_duplicates()
+    .rename_columns({"cust": "customer"})
+    .null_report()
+    .validate("cpf", "CPF")
+    .transform("sale_date", "DATE")
+    .extract_date("sale_date")
+    .create_lags("revenue", atrasos=[1, 2], medias=[3])
+    .detect_anomalies(["revenue"], contaminacao=0.05)
+    .segment(["revenue", "qty"], grupos=3)
+    .save_report("sales_report.html")
+)
+```
+
+**Reading files:**
+```python
+from sanice import Sanice
+
+app = Sanice("data.csv", lang="en")
+app = Sanice("data.csv", lang="en", sep=";", encoding="latin1", decimal=",")
+app = Sanice("book.xlsx", lang="en", aba="Sheet2")
+app.filter_data("qty > 1").undo()
+```
+
+**Credit risk with rare defaults, saved and reused:**
+```python
+from sanice import Sanice
+
+app = Sanice("loans.csv", lang="en")
+
+(app
+    .scale_data(exclude=["defaulted"])
+    .auto_ml(target="defaulted", balance=True, cross_validation=5, metric="f1", save_path="credit.pkl")
+    .evaluate()
+    .feature_importance(top=5)
+    .predict_proba()
+    .save_report("credit_report.html")
+)
+
+Sanice("new_loans.csv", lang="en").load_ai("credit.pkl").predict_proba()
+```
+
+**Cash flow forecast with lags:**
+```python
+from sanice import Sanice
+
+(Sanice("cashflow.csv", lang="en")
+    .convert_date("date")
+    .sort_data("date")
+    .create_lags("amount", atrasos=[1, 2, 3], medias=[3])
+    .extract_date("date")
+    .auto_ml(target="amount", type="regression", metric="mae")
+    .evaluate()
+)
+```
+
+**Serving predictions on another host and port:**
+```python
+from sanice import Sanice
+
+(Sanice("loans.csv", lang="en")
+    .auto_ml(target="defaulted")
+    .serve_api(host="0.0.0.0", porta=8080)
 )
 ```
 
@@ -342,19 +444,28 @@ This project is licensed under the Apache License, Version 2.0. See the [LICENSE
 ---
 
 <details>
-<summary><b>Nota da Versão - v1.1.0+</b></summary>
+<summary><b>Notas da Versão - v1.2.0</b></summary>
 <br>
 
-## Correções Críticas
-* **Integridade de Escopo:** Corrigido o erro fatal `SyntaxError: 'return' outside function` que afetava a versão v1.0.11.
-* **Restauração de Métodos:** Os cabeçalhos das funções `.prever()` e `.servir_api()` foram devidamente restaurados, garantindo a execução correta do interpretador Python.
-* [cite_start]**Pipeline Blindado:** Implementada proteção interna para evitar falhas caso o modelo de IA não seja carregado antes da predição, mantendo o encadeamento de métodos (Method Chaining) funcional[cite: 208, 251].
+## Correções
+* `.auto_ml(...)` agora deixa o modelo pronto. `.prever()` e `.servir_api()` funcionam logo após o treino, sem salvar e carregar.
+* `.escalonar()` aceita `colunas` e `excluir`, lembra quais colunas escalou e não quebra mais as previsões em dados novos.
+* Previsão de uma única linha (a API) não descarta mais a única categoria de uma coluna de texto.
+* `.criar_coluna()` mantém o encadeamento depois de um erro.
+* A leitura de CSV detecta separador e codificação, aceita `.CSV`, `.tsv` e `.txt`, e tem `sep`, `encoding`, `aba` e `decimal`.
+* A regra `DATE` do `.transformar()` agora funciona. `UPPER` e `LOWER` preservam vazios. `CPF` e `CNPJ` mantêm os zeros à esquerda.
+* Erros e mensagens seguem o idioma e o nível de log escolhidos.
+* `.exportar_mongo()` informa seus erros.
+* Traduções revisadas em português, inglês, chinês e hindi.
+* Exemplos do README com os nomes reais dos métodos.
 
-## Novas Funcionalidades e Melhorias
-* [cite_start]**AutoML 2.0 (O Torneio):** Estabilização da arena de modelos onde competem **Linear Regression**, **Random Forest** e **Gradient Boosting**[cite: 694, 750].
-* [cite_start]**Predição Inteligente:** O método `.prever()` agora gerencia automaticamente a reindexação de colunas (dummies), garantindo compatibilidade entre dados de treino e novos dados[cite: 793, 1206].
-* [cite_start]**API de Uma Linha:** Otimização do comando `.servir_api()` para levantamento instantâneo de servidores **FastAPI** com documentação interativa (Swagger UI) integrada[cite: 184, 958, 961].
-* [cite_start]**Localização Global (I18N):** Refinamento completo das mensagens de log e suporte para limpeza de dados em **Português**, **Inglês**, **Chinês** e **Hindi**[cite: 358, 362].
+## Novidades
+* Comandos: `remover_duplicados`, `renomear`, `nulos`, `informacoes`, `amostra`, `validar`, `extrair_data`, `criar_atrasos`, `detectar_anomalias`, `segmentar`, `importancia`, `avaliar`, `prever_proba`, `salvar_relatorio`, `desfazer`.
+* Opções do `.auto_ml()`: `balancear`, `validacao_cruzada`, `metrica` e tipo da tarefa detectado automaticamente.
+* Regras do `.transformar()`: `CEP`, `UF`, `REGIAO`, `DATE`.
+* `.servir_api(host, porta)` e probabilidades na resposta da API.
+* `.plotar("box")` e `.salvar("dados.json")`.
+* Python 3.9 ou superior. Testes em 3.9 a 3.13.
 
 **Como atualizar:**
 `pip install sanice --upgrade`
@@ -385,7 +496,7 @@ Você pode verificar os comandos disponíveis direto do seu terminal, sem abrir 
 sanice ajuda   # 🇧🇷 Português
 ```
 
-### Otimização Inteligente (v1.0.9+)
+### Otimização Automática (v1.0.9+)
 
 
 Ative o `smart_run` para detectar datas automaticamente e comprimir o uso de memória convertendo texto repetitivo em categorias.
@@ -477,7 +588,7 @@ print("INFO: Pipeline de dados finalizado e transações limpas exportadas para 
 
 ### ⚡ Início Rápido
 
-**Como transformar um CSV sujo em um modelo de IA em produção em minutos.**
+**Como transformar um CSV sujo em um modelo em produção em minutos.**
 
 ```python
 
@@ -559,11 +670,7 @@ app_pt.transformar("valor_importacao", "MONEY")
 (Sanice("vendas.csv")
     .filtrar("status == 'Concluido'")
     .criar_coluna("faturamento", "preco * quantidade")
-    .agrupar(
-        cols=["regiao", "categoria"], 
-        value_col="faturamento", 
-        operacao="soma"
-    )
+    .agrupar(["regiao", "categoria"], "faturamento", "soma")
     .ordenar("faturamento", ascendente=False)
 )
 ```
@@ -627,11 +734,11 @@ app = Sanice.de_sql(
 )
 ```
 
-### 5. IA e Machine Learning
+### 5. Machine Learning
 | Comando | Descrição |
 | :--- | :--- |
 | `app.escalonar(metodo)` | Normaliza dados usando escalonador `'minmax'` ou `'standard'`. |
-| `app.auto_ml(alvo, tipo, caminho)` | **Torneio AutoML:** treina 3 modelos (Linear, RF, Gradient), seleciona o melhor e salva. |
+| `app.auto_ml(alvo, tipo, caminho)` | **Torneio de modelos:** treina 3 modelos (Linear, RF, Gradient), seleciona o melhor e salva. |
 | `app.carregar_ia(caminho)` | Carrega um modelo `.pkl` pré-treinado na memória. |
 | `app.prever(coluna_saida)` | Gera previsões usando o modelo carregado. |
 
@@ -645,7 +752,7 @@ app = Sanice.de_sql(
 # Treinamento com Torneio (Sanice compara modelos automaticamente)
 (Sanice("telecom_churn.csv")
     .escalonar("minmax")
-    .auto_ml(alvo="churn", tipo="classificacao", salvar_modelo="minha_ia.pkl")
+    .auto_ml(alvo="churn", tipo="classificacao", salvar_modelo="meu_modelo.pkl")
 )
 
 # Saída do Console:
@@ -654,7 +761,7 @@ app = Sanice.de_sql(
 
 # ... Em outro script, carregando e prevendo:
 (Sanice("novos_clientes.csv")
-    .carregar_ia("minha_ia.pkl")
+    .carregar_ia("meu_modelo.pkl")
     .prever(nome_coluna_saida="prob_churn")
 )
 ```
@@ -662,13 +769,13 @@ app = Sanice.de_sql(
 ### 6. Exportação e Deploy
 | Comando | Descrição |
 | :--- | :--- |
-| `app.salvar(path)` | Exporta dados para `.csv`, `.xlsx` ou `.parquet`. |
+| `app.salvar(path)` | Exporta dados para `.csv`, `.xlsx`, `.parquet` ou `.json`. |
 | `app.exportar_sql(url, table)` | Envia o dataframe para um banco de dados SQL. |
-| `app.servir_api()` | Inicia um servidor FastAPI para servir previsões. |
+| `app.servir_api(host, porta)` | Inicia um servidor FastAPI para servir previsões (padrão `127.0.0.1:8000`). |
 
 > **Casos de Uso:**
 > * Exportação de dados tratados para ferramentas de BI como Power BI.
-> * Criação instantânea de microserviços de IA para integração com Apps.
+> * Criação instantânea de microserviços de modelos para integração com Apps.
 > * Persistência de dados limpos em bancos relacionais (PostgreSQL/MySQL).
 
 **Exemplo de Aplicação:**
@@ -681,6 +788,355 @@ app = Sanice.de_sql(
     .servir_api()                   # API Online em http://localhost:8000
 )
 ```
+
+### 7. Novidades da 1.2.0
+
+| Comando | Descrição |
+| :--- | :--- |
+| `Sanice(caminho, sep, encoding, aba, decimal)` | Separador e codificação são detectados quando omitidos, então CSVs brasileiros (`;` e `latin1`) carregam direto. `aba` escolhe a planilha do Excel. |
+| `app.remover_duplicados([cols])` | Remove linhas duplicadas. |
+| `app.renomear({antigo: novo})` | Renomeia colunas. |
+| `app.nulos()` | Porcentagem de nulos por coluna. |
+| `app.informacoes()` | Linhas, colunas, memória e tipos. |
+| `app.amostra(n)` | Sorteia linhas (`n` ou `fracao`). |
+| `app.validar(col, regra)` | Valida `CPF`, `CNPJ`, `EMAIL` ou `CEP`. Cria `<col>_valido`, ou remove os inválidos com `remover=True`. |
+| `app.extrair_data(col)` | Cria colunas de ano, mês, dia e dia da semana. |
+| `app.criar_atrasos(col, atrasos, medias)` | Atrasos e médias móveis para séries no tempo. |
+| `app.detectar_anomalias([cols])` | Marca lançamentos fora do padrão na coluna `anomalia`. |
+| `app.segmentar([cols], grupos)` | Agrupa linhas parecidas na coluna `segmento`. |
+| `app.avaliar()` | Acurácia e F1, ou R², RMSE e MAE, medidos em dados separados para teste. |
+| `app.importancia(top)` | Variáveis que mais pesam no modelo. |
+| `app.prever_proba()` | Uma coluna de probabilidade por classe. |
+| `app.salvar_relatorio(caminho)` | Relatório `.html` ou `.xlsx` com passos, resumo e métricas. |
+| `app.desfazer()` | Desfaz até as últimas 5 operações. |
+
+Opções do `auto_ml`: `balancear=True` para classes raras (fraude, inadimplência), `validacao_cruzada=5`, `metrica` (`acuracia`, `f1`, `r2`, `rmse`, `mae`). O tipo da tarefa é detectado pelo alvo; force com `tipo="classificacao"` ou `tipo="regressao"`.
+
+**Limpeza, validação e relatório:**
+```python
+from sanice import Sanice
+
+app = Sanice("vendas.csv")
+
+(app
+    .remover_duplicados()
+    .renomear({"cli": "cliente"})
+    .nulos()
+    .validar("cpf", "CPF")
+    .transformar("data_venda", "DATE")
+    .extrair_data("data_venda")
+    .criar_atrasos("faturamento", atrasos=[1, 2], medias=[3])
+    .detectar_anomalias(["faturamento"], contaminacao=0.05)
+    .segmentar(["faturamento", "qtd"], grupos=3)
+    .salvar_relatorio("relatorio_vendas.html")
+)
+```
+
+**Leitura de arquivos:**
+```python
+from sanice import Sanice
+
+app = Sanice("dados.csv")
+app = Sanice("dados.csv", sep=";", encoding="latin1", decimal=",")
+app = Sanice("livro.xlsx", aba="Planilha2")
+app.filtrar("qtd > 1").desfazer()
+```
+
+**Risco de crédito com inadimplência rara, salvo e reutilizado:**
+```python
+from sanice import Sanice
+
+app = Sanice("emprestimos.csv")
+
+(app
+    .escalonar(excluir=["inadimplente"])
+    .auto_ml(alvo="inadimplente", balancear=True, validacao_cruzada=5, metrica="f1", salvar_modelo="credito.pkl")
+    .avaliar()
+    .importancia(top=5)
+    .prever_proba()
+    .salvar_relatorio("relatorio_credito.html")
+)
+
+Sanice("novos_emprestimos.csv").carregar_ia("credito.pkl").prever_proba()
+```
+
+**Previsão de fluxo de caixa com atrasos:**
+```python
+from sanice import Sanice
+
+(Sanice("fluxo_caixa.csv")
+    .converter_data("data")
+    .ordenar("data")
+    .criar_atrasos("valor", atrasos=[1, 2, 3], medias=[3])
+    .extrair_data("data")
+    .auto_ml(alvo="valor", tipo="regressao", metrica="mae")
+    .avaliar()
+)
+```
+
+**Servir previsões em outro host e porta:**
+```python
+from sanice import Sanice
+
+(Sanice("emprestimos.csv")
+    .auto_ml(alvo="inadimplente")
+    .servir_api(host="0.0.0.0", porta=8080)
+)
+```
+
+---
+
+<a name="-中文"></a>
+## 🇨🇳 中文
+
+**Sanice** 是一个流畅的 Python 封装库，用方法链的方式完成数据清洗、建模和部署。你可以用中文方法名调用全部功能：`Sanice("data.csv", lang="zh")`。
+
+### 安装
+
+```bash
+pip install sanice
+pip install "sanice[api,db]"
+```
+
+<details>
+<summary><b>版本说明 - v1.2.0</b></summary>
+<br>
+
+## 修复
+* `.自动训练(...)` 训练后模型立即可用，`.预测()` 和 `.启动API()` 无需保存再加载。
+* `.数据缩放()` 支持 `colunas` 和 `excluir`（也可用 `exclude`），会记住缩放过的列，新数据的预测不再出错。
+* 单行预测（API）不再丢掉文本列唯一的类别。
+* `.创建列()` 出错后仍可继续链式调用。
+* 读取 CSV 会自动识别分隔符和编码，支持 `.CSV`、`.tsv`、`.txt`，并新增 `sep`、`encoding`、`aba`、`decimal` 参数。
+* `.数据转换()` 的 `DATE` 规则现在可用；`UPPER` 和 `LOWER` 保留空值；`CPF` 和 `CNPJ` 保留前导零；小写规则改为 `小写`。
+* 错误和提示遵循所选语言和日志级别。
+* 四种语言的翻译已全部检查。
+
+## 新增
+* 命令：`移除重复`、`重命名列`、`空值报告`、`数据信息`、`抽样`、`验证数据`、`提取日期`、`创建滞后`、`检测异常`、`客户分群`、`特征重要性`、`评估模型`、`预测概率`、`保存报告`、`撤销`。
+* `.自动训练()` 新选项：`平衡`、`交叉验证`、`指标`，并自动判断任务类型。
+* `.数据转换()` 新规则：`CEP`、`UF`、`REGIAO`、`DATE`。
+* `.启动API(host, porta)`，API 返回概率。
+* 需要 Python 3.9 或更高版本。
+
+**升级：** `pip install sanice --upgrade`
+</details>
+
+### 新命令
+
+| 命令 | 说明 |
+| :--- | :--- |
+| `Sanice(路径, sep, encoding, aba, decimal)` | 省略时自动识别分隔符和编码。`aba` 选择 Excel 工作表。 |
+| `app.移除重复()` | 移除重复行。 |
+| `app.重命名列({旧: 新})` | 重命名列。 |
+| `app.空值报告()` | 显示各列空值百分比。 |
+| `app.数据信息()` | 行数、列数、内存与类型。 |
+| `app.抽样(n)` | 随机抽取行（`n` 或 `fracao`）。 |
+| `app.验证数据(列, 规则)` | 验证 `CPF`、`CNPJ`、`EMAIL` 或 `CEP`，生成 `<列>_valido` 列；`remover=True` 则删除无效行。 |
+| `app.提取日期(列)` | 生成年、月、日和星期列。 |
+| `app.创建滞后(列, atrasos, medias)` | 为时间序列生成滞后列和移动平均。 |
+| `app.检测异常([列])` | 在 `anomalia` 列中标记异常记录。 |
+| `app.客户分群([列], grupos)` | 在 `segmento` 列中给出分群。 |
+| `app.评估模型()` | 在留出的数据上显示准确率和 F1，或 R²、RMSE、MAE。 |
+| `app.特征重要性(top)` | 对模型影响最大的变量。 |
+| `app.预测概率()` | 为每个类别生成一列概率。 |
+| `app.保存报告(路径)` | 生成包含步骤、摘要和指标的 `.html` 或 `.xlsx` 报告。 |
+| `app.撤销()` | 最多撤销最近 5 步操作。 |
+
+`自动训练` 选项：`平衡=True`（用于欺诈、违约等稀有类别）、`交叉验证=5`、`指标`（`accuracy`、`f1`、`r2`、`rmse`、`mae`）。任务类型由目标列自动判断，也可用 `type="classification"` 或 `type="regression"` 指定。
+
+`atrasos`、`medias`、`grupos`、`contaminacao` 等参数名在所有语言中相同。
+
+**清洗、验证和报告：**
+```python
+from sanice import Sanice
+
+app = Sanice("sales.csv", lang="zh")
+
+(app
+    .移除重复()
+    .重命名列({"cust": "customer"})
+    .空值报告()
+    .验证数据("cpf", "CPF")
+    .数据转换("sale_date", "DATE")
+    .提取日期("sale_date")
+    .创建滞后("revenue", atrasos=[1, 2], medias=[3])
+    .检测异常(["revenue"], contaminacao=0.05)
+    .客户分群(["revenue", "qty"], grupos=3)
+    .保存报告("sales_report.html")
+)
+```
+
+**读取文件：**
+```python
+from sanice import Sanice
+
+app = Sanice("data.csv", lang="zh")
+app = Sanice("data.csv", lang="zh", sep=";", encoding="latin1", decimal=",")
+app = Sanice("book.xlsx", lang="zh", aba="Sheet2")
+app.过滤数据("qty > 1").撤销()
+```
+
+**违约稀少的信用风险，保存并复用：**
+```python
+from sanice import Sanice
+
+app = Sanice("loans.csv", lang="zh")
+
+(app
+    .数据缩放(exclude=["defaulted"])
+    .自动训练(目标="defaulted", 平衡=True, 交叉验证=5, 指标="f1", 保存路径="credit.pkl")
+    .评估模型()
+    .特征重要性(top=5)
+    .预测概率()
+    .保存报告("credit_report.html")
+)
+
+Sanice("new_loans.csv", lang="zh").加载模型("credit.pkl").预测概率()
+```
+
+**带滞后特征的现金流预测：**
+```python
+from sanice import Sanice
+
+(Sanice("cashflow.csv", lang="zh")
+    .转换日期("date")
+    .排序数据("date")
+    .创建滞后("amount", atrasos=[1, 2, 3], medias=[3])
+    .提取日期("date")
+    .自动训练(目标="amount", type="regression", 指标="mae")
+    .评估模型()
+)
+```
+
+完整的命令对照表见下方 [Multi-language](#-Multilanguage)。
+
+---
+
+<a name="-hindi"></a>
+## 🇮🇳 हिन्दी (Hinglish)
+
+**Sanice** ek fluent Python wrapper hai jo data safai, modeling aur deployment ko method chaining se aasaan banata hai. Saare commands Hinglish naamon se chalte hain: `Sanice("data.csv", lang="hi")`.
+
+### Installation
+
+```bash
+pip install sanice
+pip install "sanice[api,db]"
+```
+
+<details>
+<summary><b>Release Notes - v1.2.0</b></summary>
+<br>
+
+## Sudhaar
+* `.automl_kare(...)` ke baad model turant taiyaar rehta hai. `.bhavishya_bataye()` aur `.api_chalu_kare()` bina save aur load kiye chalte hain.
+* `.scale_kare()` ab `colunas` aur `excluir` (ya `exclude`) leta hai, yaad rakhta hai kaun se columns scale hue, aur naye data ki predictions kharab nahi hoti.
+* Ek row ki prediction (API) ab text column ki akeli category ko nahi hatati.
+* `.column_banaye()` galti ke baad bhi chaining chalne deta hai.
+* CSV padhte waqt separator aur encoding apne aap pehchane jaate hain. `.CSV`, `.tsv`, `.txt` chalte hain, aur `sep`, `encoding`, `aba`, `decimal` options hain.
+* `.badlav_kare()` ka `DATE` rule ab chalta hai. `UPPER` aur `LOWER` khali values ko nahi chhedte. `CPF` aur `CNPJ` ke shuruati zero bache rehte hain.
+* Galtiyan aur messages chuni hui bhasha aur log level ke hisaab se aate hain.
+* Chaaron bhashaon ke translations dobara jaanche gaye.
+
+## Naya
+* Commands: `duplicate_hataye`, `naam_badle`, `null_dekhe`, `jankari`, `namuna`, `jaanch_kare`, `date_nikale`, `lag_banaye`, `anomaly_khoje`, `segment_banaye`, `mahatva`, `model_jaanche`, `sambhavna_bataye`, `report_save_kare`, `vapas_kare`.
+* `.automl_kare()` ke naye options: `santulan`, `cross_validation`, `metric`, aur task type apne aap pehchana jaata hai.
+* `.badlav_kare()` ke naye rules: `CEP`, `UF`, `REGIAO`, `DATE`.
+* `.api_chalu_kare(host, porta)` aur API jawab mein probabilities.
+* Python 3.9 ya usse naya chahiye.
+
+**Update:** `pip install sanice --upgrade`
+</details>
+
+### Naye commands
+
+| Command | Kaam |
+| :--- | :--- |
+| `Sanice(path, sep, encoding, aba, decimal)` | Na dene par separator aur encoding apne aap milte hain. `aba` Excel sheet chunta hai. |
+| `app.duplicate_hataye()` | Duplicate rows hataata hai. |
+| `app.naam_badle({purana: naya})` | Columns ke naam badalta hai. |
+| `app.null_dekhe()` | Har column mein null ka pratishat. |
+| `app.jankari()` | Rows, columns, memory aur types. |
+| `app.namuna(n)` | Random rows chunta hai (`n` ya `fracao`). |
+| `app.jaanch_kare(col, rule)` | `CPF`, `CNPJ`, `EMAIL` ya `CEP` jaanchta hai. `<col>_valido` banata hai, ya `remover=True` se galat rows hata deta hai. |
+| `app.date_nikale(col)` | Saal, mahina, din aur weekday columns banata hai. |
+| `app.lag_banaye(col, atrasos, medias)` | Time series ke liye lags aur moving averages. |
+| `app.anomaly_khoje([cols])` | `anomalia` column mein anokhe records mark karta hai. |
+| `app.segment_banaye([cols], grupos)` | `segmento` column mein milti-julti rows ke groups. |
+| `app.model_jaanche()` | Alag rakhe gaye data par accuracy aur F1, ya R², RMSE aur MAE. |
+| `app.mahatva(top)` | Model par sabse zyada asar karne wale variables. |
+| `app.sambhavna_bataye()` | Har class ke liye ek probability column. |
+| `app.report_save_kare(path)` | Steps, summary aur metrics ke saath `.html` ya `.xlsx` report. |
+| `app.vapas_kare()` | Pichle 5 operations tak wapas karta hai. |
+
+`automl_kare` ke options: `santulan=True` (fraud, default jaisi kam milne wali classes ke liye), `cross_validation=5`, `metric` (`accuracy`, `f1`, `r2`, `rmse`, `mae`). Task type target se pehchana jaata hai; zaroorat ho to `type="classification"` ya `type="regression"` dein.
+
+`atrasos`, `medias`, `grupos`, `contaminacao` jaise parameter naam har bhasha mein same hain.
+
+**Safai, jaanch aur report:**
+```python
+from sanice import Sanice
+
+app = Sanice("sales.csv", lang="hi")
+
+(app
+    .duplicate_hataye()
+    .naam_badle({"cust": "customer"})
+    .null_dekhe()
+    .jaanch_kare("cpf", "CPF")
+    .badlav_kare("sale_date", "DATE")
+    .date_nikale("sale_date")
+    .lag_banaye("revenue", atrasos=[1, 2], medias=[3])
+    .anomaly_khoje(["revenue"], contaminacao=0.05)
+    .segment_banaye(["revenue", "qty"], grupos=3)
+    .report_save_kare("sales_report.html")
+)
+```
+
+**Files padhna:**
+```python
+from sanice import Sanice
+
+app = Sanice("data.csv", lang="hi")
+app = Sanice("data.csv", lang="hi", sep=";", encoding="latin1", decimal=",")
+app = Sanice("book.xlsx", lang="hi", aba="Sheet2")
+app.filter_kare("qty > 1").vapas_kare()
+```
+
+**Kam milne wale default ke saath credit risk, save karke dobara use:**
+```python
+from sanice import Sanice
+
+app = Sanice("loans.csv", lang="hi")
+
+(app
+    .scale_kare(exclude=["defaulted"])
+    .automl_kare(lakshya="defaulted", santulan=True, cross_validation=5, metric="f1", save_path="credit.pkl")
+    .model_jaanche()
+    .mahatva(top=5)
+    .sambhavna_bataye()
+    .report_save_kare("credit_report.html")
+)
+
+Sanice("new_loans.csv", lang="hi").ai_load_kare("credit.pkl").sambhavna_bataye()
+```
+
+**Lags ke saath cash flow forecast:**
+```python
+from sanice import Sanice
+
+(Sanice("cashflow.csv", lang="hi")
+    .date_badlo("date")
+    .sort_kare("date")
+    .lag_banaye("amount", atrasos=[1, 2, 3], medias=[3])
+    .date_nikale("date")
+    .automl_kare(lakshya="amount", type="regression", metric="mae")
+    .model_jaanche()
+)
+```
+
+Poori command table neeche [Multi-language](#-Multilanguage) mein hai.
 
 ---
 <a name="-Multilanguage"></a>
@@ -712,7 +1168,7 @@ Sanice is designed for global people. You can call methods in English, Portugues
 | `ver` | `view` | `查看` | `dekhe` |
 | `ajuda` | `help` | `帮助` | `madad` |
 | `agrupar` | `group_by` | `分组` | `samuh_banaye` |
-| `tabela_dinamica` | `pivot_table` | `透视表` | `pivot_table` |
+| `tabela_dinamica` | `pivot_table` | `透视表` | `pivot_banaye` |
 | `exportar_sql` | `export_sql` | `导出SQL` | `sql_export` |
 | `matriz_correlacao` | `correlation_matrix` | `相关矩阵` | `sambandh_matrix` |
 | `tratar_outliers` | `handle_outliers` | `处理异常值` | `outliers_hataye` |
@@ -724,6 +1180,21 @@ Sanice is designed for global people. You can call methods in English, Portugues
 | `configurar_logs` | `configure_logs` | `配置日志` | `log_set_kare` |
 | `selecionar_colunas` | `select_columns` | `选择列` | `columns_chunne` |
 | `pegar_dataframe` | `get_dataframe` | `获取数据` | `data_lo` |
+| `remover_duplicados` | `remove_duplicates` | `移除重复` | `duplicate_hataye` |
+| `renomear` | `rename_columns` | `重命名列` | `naam_badle` |
+| `nulos` | `null_report` | `空值报告` | `null_dekhe` |
+| `informacoes` | `info` | `数据信息` | `jankari` |
+| `amostra` | `sample_rows` | `抽样` | `namuna` |
+| `validar` | `validate` | `验证数据` | `jaanch_kare` |
+| `extrair_data` | `extract_date` | `提取日期` | `date_nikale` |
+| `criar_atrasos` | `create_lags` | `创建滞后` | `lag_banaye` |
+| `detectar_anomalias` | `detect_anomalies` | `检测异常` | `anomaly_khoje` |
+| `segmentar` | `segment` | `客户分群` | `segment_banaye` |
+| `importancia` | `feature_importance` | `特征重要性` | `mahatva` |
+| `avaliar` | `evaluate` | `评估模型` | `model_jaanche` |
+| `prever_proba` | `predict_proba` | `预测概率` | `sambhavna_bataye` |
+| `salvar_relatorio` | `save_report` | `保存报告` | `report_save_kare` |
+| `desfazer` | `undo` | `撤销` | `vapas_kare` |
 
 </details>
 

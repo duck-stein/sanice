@@ -1,4 +1,6 @@
-from .core import Sanice 
+__version__ = "1.2.0"
+
+from .core import Sanice
 
 import pandas as pd
 import numpy as np

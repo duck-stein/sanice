@@ -32,7 +32,7 @@ First off, thank you for considering contributing to Sanice! It's people like yo
 1.  **Fork** the repository on GitHub.
 2.  **Clone** your fork locally:
     ```bash
-    git clone [https://github.com/YOUR_USER/sanice.git](https://github.com/YOUR_USER/sanice.git)
+    git clone https://github.com/YOUR_USER/sanice.git
     cd sanice
     ```
 3.  **Install dependencies** in editable mode (with dev tools):
@@ -60,5 +60,5 @@ First off, thank you for considering contributing to Sanice! It's people like yo
 2.  **Dependencies:** If your feature introduces a new Python library:
     * Add it to `install_requires` in `setup.py` if it's essential.
     * Add it to `extras_require` in `setup.py` if it's optional (like database drivers).
-3.  **Versioning:** Update the version in `setup.py` and `core.py` (e.g., `1.0.8` -> `1.0.9`) **only if instructed** (usually maintainers handle releases).
+3.  **Versioning:** Update the version in `sanice/__init__.py` (e.g., `1.0.8` -> `1.0.9`) **only if instructed** (usually maintainers handle releases).
 4.  **CI/CD:** The PR will trigger a GitHub Action. **If the tests fail, the PR cannot be merged.**
